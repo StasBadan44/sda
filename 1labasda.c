@@ -3,7 +3,6 @@
 
 #define MAX 10
 
-// Структура Автомобиль
 struct Car {
     char brand[20];
     char model[20];
@@ -12,11 +11,9 @@ struct Car {
     float price;
 };
 
-// Статический массив
 struct Car cars[MAX];
 int count = 0;
 
-// Добавление автомобиля
 void addCar() {
     if (count == MAX) {
         printf("Массив заполнен!\n");
@@ -42,7 +39,6 @@ void addCar() {
     printf("Автомобиль добавлен.\n");
 }
 
-// Вывод всех автомобилей
 void printCars() {
     if (count == 0) {
         printf("Список пуст.\n");
@@ -60,7 +56,6 @@ void printCars() {
     }
 }
 
-// Удаление (по номеру в списке)
 void deleteCar() {
     int num;
 
@@ -86,7 +81,6 @@ void deleteCar() {
     printf("Автомобиль удалён.\n");
 }
 
-// Редактирование (без работы напрямую с индексом)
 void editCar() {
     int num, choice;
 
@@ -104,8 +98,8 @@ void editCar() {
         return;
     }
 
-    num--; // перевод в индекс
-
+    num--;
+    
     printf("Что изменить?\n");
     printf("1. Марка\n");
     printf("2. Модель\n");
@@ -140,7 +134,6 @@ void editCar() {
     }
 }
 
-// Поиск по марке
 void searchByBrand() {
     char brand[20];
     int found = 0;
@@ -170,7 +163,6 @@ void searchByBrand() {
         printf("Автомобили не найдены.\n");
 }
 
-// Главное меню
 int main() {
     int choice;
 
