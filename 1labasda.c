@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <string.h>
-
-#define MAX 10
+#include <stdlib.h>
 
 struct Car {
     char brand[20];
@@ -11,32 +10,82 @@ struct Car {
     float price;
 };
 
-struct Car cars[MAX];
-int count = 0;
+struct Car *cars = NULL;
+int count = 0; 
+int capacity = 0; 
 
-void addCar() {
-    if (count == MAX) {
-        printf("Массив заполнен!\n");
+void expandArray(int extraCount) {
+    int newCapacity = capacity + extraCount;
+    struct Car *newArr = (struct Car *)malloc(newCapacity * sizeof(struct Car));
+
+    if (newArr == NULL) {
+        printf("Ошибка выделения памяти!\n");
         return;
     }
 
+    for (int i = 0; i < count; i++) {
+        newArr[i] = cars[i];
+    }
+
+    free(cars);
+
+    cars = newArr;
+    capacity = newCapacity;
+}
+
+void shrinkArray() {
+    if (capacity == 0) return;
+
+    int newCapacity = capacity - 1;
+
+    if (newCapacity == 0) {
+        free(cars);
+        cars = NULL;
+        capacity = 0;
+        count = 0;
+        return;
+    }
+
+    struct Car *newArr = (struct Car *)malloc(newCapacity * sizeof(struct Car));
+
+    if (newArr == NULL) {
+        printf("Ошибка выделения памяти!\n");
+        return;
+    }
+
+    for (int i = 0; i < count - 1; i++) {
+        newArr[i] = cars[i];
+    }
+
+    free(cars);
+    cars = newArr;
+    capacity = newCapacity;
+
+    if (count > capacity)
+        count = capacity;
+}
+
+void addCar() {
+    // Расширяем массив на 1 слот
+    expandArray(1);
+
     printf("Марка: ");
-    scanf("%s", cars[count].brand);
+    scanf("%19s", cars[count].brand);
 
     printf("Модель: ");
-    scanf("%s", cars[count].model);
+    scanf("%19s", cars[count].model);
 
     printf("Год: ");
     scanf("%d", &cars[count].year);
 
     printf("Цвет: ");
-    scanf("%s", cars[count].color);
+    scanf("%14s", cars[count].color);
 
     printf("Цена: ");
     scanf("%f", &cars[count].price);
 
     count++;
-    printf("Автомобиль добавлен.\n");
+    printf("Автомобиль добавлен. Текущий размер массива: %d слотов.\n", capacity);
 }
 
 void printCars() {
@@ -45,40 +94,30 @@ void printCars() {
         return;
     }
 
-    printf("\nСписок автомобилей:\n");
+    printf("\nСписок автомобилей (элементов: %d, слотов выделено: %d):\n", count, capacity);
     for (int i = 0; i < count; i++) {
         printf("\n№%d\n", i + 1);
-        printf("Марка: %s\n", cars[i].brand);
+        printf("Марка:  %s\n", cars[i].brand);
         printf("Модель: %s\n", cars[i].model);
-        printf("Год: %d\n", cars[i].year);
-        printf("Цвет: %s\n", cars[i].color);
-        printf("Цена: %.2f\n", cars[i].price);
+        printf("Год:    %d\n", cars[i].year);
+        printf("Цвет:   %s\n", cars[i].color);
+        printf("Цена:   %.2f\n", cars[i].price);
     }
 }
 
-void deleteCar() {
-    int num;
-
+void deleteLastCar() {
     if (count == 0) {
         printf("Список пуст.\n");
         return;
     }
 
-    printCars();
-    printf("Введите номер автомобиля для удаления: ");
-    scanf("%d", &num);
-
-    if (num < 1 || num > count) {
-        printf("Неверный номер.\n");
-        return;
-    }
-
-    for (int i = num - 1; i < count - 1; i++) {
-        cars[i] = cars[i + 1];
-    }
+    printf("Удаляется последний автомобиль: %s %s\n",
+           cars[count - 1].brand, cars[count - 1].model);
 
     count--;
-    printf("Автомобиль удалён.\n");
+    shrinkArray();
+
+    printf("Автомобиль удалён. Текущий размер массива: %d слот(ов).\n", capacity);
 }
 
 void editCar() {
@@ -99,38 +138,18 @@ void editCar() {
     }
 
     num--;
-    
+
     printf("Что изменить?\n");
-    printf("1. Марка\n");
-    printf("2. Модель\n");
-    printf("3. Год\n");
-    printf("4. Цвет\n");
-    printf("5. Цена\n");
+    printf("1. Марка\n2. Модель\n3. Год\n4. Цвет\n5. Цена\n");
     scanf("%d", &choice);
 
     switch (choice) {
-        case 1:
-            printf("Новая марка: ");
-            scanf("%s", cars[num].brand);
-            break;
-        case 2:
-            printf("Новая модель: ");
-            scanf("%s", cars[num].model);
-            break;
-        case 3:
-            printf("Новый год: ");
-            scanf("%d", &cars[num].year);
-            break;
-        case 4:
-            printf("Новый цвет: ");
-            scanf("%s", cars[num].color);
-            break;
-        case 5:
-            printf("Новая цена: ");
-            scanf("%f", &cars[num].price);
-            break;
-        default:
-            printf("Неверный выбор.\n");
+        case 1: printf("Новая марка: ");  scanf("%19s", cars[num].brand);  break;
+        case 2: printf("Новая модель: "); scanf("%19s", cars[num].model);  break;
+        case 3: printf("Новый год: ");    scanf("%d",  &cars[num].year);   break;
+        case 4: printf("Новый цвет: ");   scanf("%14s", cars[num].color);  break;
+        case 5: printf("Новая цена: ");   scanf("%f",  &cars[num].price);  break;
+        default: printf("Неверный выбор.\n");
     }
 }
 
@@ -144,17 +163,14 @@ void searchByBrand() {
     }
 
     printf("Введите марку: ");
-    scanf("%s", brand);
+    scanf("%19s", brand);
 
     for (int i = 0; i < count; i++) {
         if (strcmp(cars[i].brand, brand) == 0) {
             printf("\nНайдено:\n");
             printf("%s %s %d %s %.2f\n",
-                   cars[i].brand,
-                   cars[i].model,
-                   cars[i].year,
-                   cars[i].color,
-                   cars[i].price);
+                   cars[i].brand, cars[i].model,
+                   cars[i].year, cars[i].color, cars[i].price);
             found = 1;
         }
     }
@@ -163,31 +179,62 @@ void searchByBrand() {
         printf("Автомобили не найдены.\n");
 }
 
+void freeMemory() {
+    if (cars == NULL) {
+        printf("Память уже освобождена.\n");
+        return;
+    }
+    free(cars);
+    cars = NULL;
+    count = 0;
+    capacity = 0;
+    printf("Память освобождена. Список очищен.\n");
+}
+
+void expandManual() {
+    int n;
+    printf("На сколько элементов расширить массив? ");
+    scanf("%d", &n);
+    if (n <= 0) { printf("Некорректное значение.\n"); return; }
+    expandArray(n);
+    printf("Массив расширен. Текущий размер: %d слот(ов).\n", capacity);
+}
+
 int main() {
     int choice;
 
     do {
         printf("\n--- Меню ---\n");
-        printf("1. Добавить\n");
+        printf("1. Добавить автомобиль\n");
         printf("2. Показать все\n");
-        printf("3. Удалить\n");
+        printf("3. Удалить последний\n");
         printf("4. Редактировать\n");
         printf("5. Поиск по марке\n");
+        printf("6. Расширить массив вручную\n");
+        printf("7. Освободить память (очистить список)\n");
         printf("0. Выход\n");
         printf("Выбор: ");
         scanf("%d", &choice);
 
         switch (choice) {
-            case 1: addCar(); break;
-            case 2: printCars(); break;
-            case 3: deleteCar(); break;
-            case 4: editCar(); break;
+            case 1: addCar();        break;
+            case 2: printCars();     break;
+            case 3: deleteLastCar(); break;
+            case 4: editCar();       break;
             case 5: searchByBrand(); break;
+            case 6: expandManual();  break;
+            case 7: freeMemory();    break;
             case 0: printf("Выход.\n"); break;
             default: printf("Неверный пункт.\n");
         }
 
     } while (choice != 0);
+
+    if (cars != NULL) {
+        free(cars);
+        cars = NULL;
+        printf("Память освобождена перед завершением.\n");
+    }
 
     return 0;
 }
